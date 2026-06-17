@@ -33,7 +33,7 @@ MATERIALS_FILEPATH = [
 ################################
 
 
-def etl_pipeline():
+def etl_pipeline(share_url):
     """
     Exécute le pipeline ETL pour extraire les données des fichiers Excel, les transformer et les charger dans la base de données SQLite.
     """
@@ -41,7 +41,7 @@ def etl_pipeline():
 
     # Extract data from each material's Excel file and combine into a single DataFrame
     for mfp in MATERIALS_FILEPATH:
-        data.append(read_material_sheets(mfp["filepath"], mfp["material"]))
+        data.append(read_material_sheets(share_url, mfp["filepath"], mfp["material"]))
 
     # Combine all data into a single DataFrame for each category
     df_eco = pd.DataFrame()
@@ -69,14 +69,14 @@ def etl_pipeline():
 ################################
 
 
-def read_material_sheets(filepath, material_name: str):
+def read_material_sheets(share_url, filepath, material_name: str):
     """Lit les 3 feuilles d'un fichier Excel (écologique, social, usage) et retourne un dict de DataFrames.
     filepath : chemin relatif dans le partage Nextcloud (ex: "3222 - PVC/critères-tests-PVC-NEUF.xlsx")
     material_name : nom du matériau (ex: "PVC neuf")
     """
 
     file_bytes_or_path = download_file(
-        "https://nuage.relief-aura.fr/s/axt3qBkEsFWcDpr", filepath
+        share_url, filepath
     )
     if isinstance(file_bytes_or_path, bytes):
         file_bytes_or_path = io.BytesIO(file_bytes_or_path)
@@ -325,41 +325,3 @@ def load_usage_df_to_db(df_usage, conn):
 
     conn.commit()
     print(f"Inséré {len(df_usage)} rows dans la table impact_usage")
-
-
-################################
-# ANALYSE / REQUETAGE DE LA BASE
-################################
-
-
-def get_materials(db_path=DB_PATH):
-    conn = init_db(db_path)
-    materials = pd.read_sql(
-        "SELECT DISTINCT materiau FROM impact_eco ORDER BY materiau", conn
-    )["materiau"].tolist()
-    conn.close()
-    return materials
-
-
-def get_ecological_impact(materiau, db_path=DB_PATH):
-    conn = init_db(db_path)
-    df = pd.read_sql(
-        "SELECT critere, valeur, unite, description, commentaire, source, annee "
-        "FROM impact_eco WHERE materiau=? ORDER BY critere",
-        conn,
-        params=(materiau,),
-    )
-    conn.close()
-    return df
-
-
-def get_comparison_table(db_path=DB_PATH):
-    """Tableau pivot : critères en lignes, matériaux en colonnes (valeurs brutes)."""
-    conn = init_db(db_path)
-    df = pd.read_sql("SELECT materiau, critere, valeur, unite FROM impact_eco", conn)
-    conn.close()
-    if df.empty:
-        return df, {}
-    units = df.groupby("critere")["unite"].first().to_dict()
-    pivot = df.pivot(index="critere", columns="materiau", values="valeur")
-    return pivot, units
