@@ -57,15 +57,15 @@ Puis on récupère les données spécifiques matériau par matériau.
 
 ### Comparaison écologique
 Noms de feuille concernés : 'écologique pour comparaison', 'écoogique Comparaison', 'Impacts pour comparaison',
-Colonnes communes : "Catégorie"	"Description de la catégorie"	"Valeur"	
+Colonnes communes : "Catégorie"	"Description de la catégorie"	"Valeur"
 Colonnes Matériau : Valeur	Unité	Commentaire	Source	Année
 
 ### Impacts sociaux
 Noms de feuille : 'Sociaux - Impacts sociaux _ 7 c',
-Communes : Catégorie 	Typologie	Critère 	
+Communes : Catégorie 	Typologie	Critère
 Matériau : unité 	description 	Données 	Sources 	Année
 
 ### Impacts d'usage
 Noms de feuille : 'Usage - Impact d’usage _ 6 caté',
-Communes : Catégorie 	Critère 	unité 
+Communes : Catégorie 	Critère 	unité
 Matériau : description (juste extraire première ligne pour avoir la durée totale possible d'un matériau)

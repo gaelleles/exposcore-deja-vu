@@ -28,7 +28,9 @@ def parse_share_url(share_url: str):
     host = f"{parsed.scheme}://{parsed.netloc}"
     match = re.search(r"/s/([^/?]+)", parsed.path)
     if not match:
-        raise ValueError("URL de partage invalide : token introuvable (attendu .../s/<token>)")
+        raise ValueError(
+            "URL de partage invalide : token introuvable (attendu .../s/<token>)"
+        )
     token = match.group(1)
     return host, token
 
