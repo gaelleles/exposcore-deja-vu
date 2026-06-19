@@ -239,7 +239,7 @@ with tab3:
     usage_scores = {k: v * 10 for k, v in usage_scores.items()}
 
     df_usage["details"] = df_usage["category"].apply(
-        lambda x: usage_selections.get(x, "")
+        lambda x: str(usage_selections.get(x, ""))
     )
 
     df_usage["Score"] = df_usage["category"].apply(lambda x: usage_scores.get(x, 0))
