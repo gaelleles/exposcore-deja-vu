@@ -3,13 +3,14 @@ import pandas as pd
 import numpy as np
 import etl
 import analysis
+from usage import *
 
 st.set_page_config(page_title="ExpoScore", layout="wide")
 
 # ---------------------------------------------------------------------------
-# Sidebar : ETL - synchronisation Nextcloud (lien de partage public)
+# Sidebar : DONNÉES UTILISATEUR
 # ---------------------------------------------------------------------------
-st.sidebar.title("📝 Vos données")
+st.sidebar.subheader("📝 Sélectionnez un matériau")
 
 share_url = st.secrets.get("NEXTCLOUD_SHARE_URL", "")
 
@@ -21,6 +22,10 @@ if share_url:
         st.sidebar.error(f"Erreur de connexion Nextcloud : {e}")
 
 materials = analysis.get_materials()
+
+# ---------------------------------------------------------------------------
+# Sidebar : DONNÉES MATÉRIAUX
+# ---------------------------------------------------------------------------
 
 selected = st.sidebar.selectbox(
     "Sélectionnez un matériau",
@@ -39,62 +44,94 @@ if not selected:
     st.warning("Sélectionnez au moins un matériau.")
     st.stop()
 
-st.sidebar.header("⚡ Vos données d'usage")
+# ---------------------------------------------------------------------------
+# Sidebar : DONNÉES USAGE
+# ---------------------------------------------------------------------------
+st.sidebar.subheader("⚡ Vos données d'usage")
+st.sidebar.caption("Vous pouvez sélectionner plusieurs réponses pour chaque question.")
 
 # Eco-conception en fin de vie
-ecoconception = st.sidebar.selectbox(
-    "Eco-conception en fin de vie",
-    [
-        "Reconception",
-        "Réduire / refuser",
-        "Réutilisation",
-        "Réparation",
-        "Récupération",
-        "Recycler",
-        "Rendre à la Terre"
-    ]
+
+grave_selection = st.sidebar.multiselect(
+    "Quels principes avez-vous utilisés pour la **fin de vie** de ce matériau ?",
+    r_list
+)\
+
+grave_score = len(grave_selection)
+grave_pct = grave_score / len(r_list)
+
+# Respect des 7R en sourcing du matériau
+
+sourcing_selection = st.sidebar.multiselect(
+    "Quels principes avez-vous utilisés pour le **sourcing** de ce matériau ?",
+    r_list
 )
 
-score_ecoconception = {
-    "Reconception": 1,
-    "Réduire / refuser": 1,
-    "Réutilisation": 2,
-    "Réparation": 3,
-    "Récupération": 4,
-    "Recycler": 5,
-    "Rendre à la Terre": 6
-}[ecoconception]
+sourcing_score = len(sourcing_selection)
+sourcing_pct = sourcing_score / len(r_list)
 
 # Eco-pensé au début ou à la fin
+# Ou : choix du produit
 
-ecopense = st.sidebar.selectbox(
-    "Matériau ajouté car",
-    [
-        "En stock seconde main",
-        "Pour plusieurs projets",
-        "Critères techniques",
-        "En milieu de projet par habitude",
-        "Esthétisme green",
-        "Prix",
-        "Recyclable / réutilisable"
-    ]
+ecopense_selection = st.sidebar.selectbox(
+    "Pour quelles raisons avez-vous choisi ce matériau ?",
+    list(ecopense_dict.keys())
 )
 
-score_ecopense = {
-    "En stock seconde main": 1,
-    "Pour plusieurs projets": 2,
-    "Critères techniques": 2,
-    "En milieu de projet par habitude": 4,
-    "Esthétisme green": 5,
-    "Prix": 6,
-    "Recyclable / réutilisable": 7
-}[ecopense]
+ecopense_score = ecopense_dict[ecopense_selection]
+ecopense_pct = ecopense_score / len(ecopense_dict)
+
+# Impact local ( sourçage, répartition des richesses…)
+
+local_selection = st.sidebar.selectbox(
+    "Pour quelles raisons avez-vous choisi ce matériau ?",
+    list(local_dict.keys())
+)
+
+local_score = local_dict[local_selection]
+local_pct = local_score / len(local_dict)
+
+# Échange avec sachant sur les questions écologiques
+
+knowledge_selection = st.sidebar.selectbox(
+    "Avez-vous échangé avec un·e expert·e sur les questions écologiques ?",
+    list(knowledge_dict.keys())
+)
+
+knowledge_score = knowledge_dict[knowledge_selection]
+knowledge_pct = knowledge_score / len(knowledge_dict)
+
+# Dictionnaire des scores d'usage pour calcul du score final
+
+usage_scores = {
+    "Eco-conception en fin de vie": grave_pct,
+    "Respect des 7R en sourcing du matériau": sourcing_pct,
+    "Eco-pensé au début ou à la fin": ecopense_pct,
+    "Impact local ( sourçage, répartition des richesses…)": local_pct,
+    "Échange avec sachant sur les questions écologiques": knowledge_pct,
+}
+
+usage_selections = {
+    "Eco-conception en fin de vie": grave_selection,
+    "Respect des 7R en sourcing du matériau": sourcing_selection,
+    "Eco-pensé au début ou à la fin": ecopense_selection,
+    "Impact local ( sourçage, répartition des richesses…)": local_selection,
+    "Échange avec sachant sur les questions écologiques": knowledge_selection,
+}
+
+# ---------------------------------------------------------------------------
+# MAIN APP : AFFICHAGE DES DONNÉES D'IMPACT
+# ---------------------------------------------------------------------------
 
 st.title("🖼️ ExpoScore")
 st.subheader("Analyse d'impact des matériaux utilisés en exposition, par l'association Déjà-Vu")
 
 
 tab1, tab2, tab3 = st.tabs(["🌱 Impact écologique", "👥 Impact social", "⚡ Impact d'usage"])
+
+# ---------------------------------------------------------------------------
+# ONGLET IMPACT ÉCOLOGIQUE
+# ---------------------------------------------------------------------------
 
 with tab1:
     st.subheader("🌱 Impact écologique")
@@ -114,7 +151,20 @@ with tab1:
         df_eco["Données"] = df_eco["Données"].apply(analysis.convert_if_float).apply(
                 lambda x: x * mass if isinstance(x, (int, float)) else x
             )
+        df_eco = df_eco[[
+            "Catégorie",
+            "Données",
+            "Unité",
+            "Description",
+            "Commentaire",
+            "Source",
+            "Année"
+        ]]
         st.dataframe(df_eco, use_container_width=True, hide_index=True)
+
+# ---------------------------------------------------------------------------
+# ONGLET IMPACT SOCIAL
+# ---------------------------------------------------------------------------
 
 with tab2:
     st.subheader("👥 Impact social")
@@ -149,64 +199,48 @@ with tab2:
     use_container_width=True, hide_index=True)
     st.info("Le score d'impact social est calculé sur une échelle de 1 à 10 (1 étant le pire, 10 le meilleur).")
 
+# ---------------------------------------------------------------------------
+# ONGLET IMPACT D'USAGE
+# ---------------------------------------------------------------------------
+
 with tab3:
     st.subheader("⚡ Impact d'usage")
+    st.caption("L'impact d'usage est calculé en fonction de la durabilité du matériau (Durée d'usage) et des réponses au questionnaire d'usage à gauche de votre écran.")
     df_usage = analysis.get_usage_impact(selected)
-    st.dataframe(df_usage, use_container_width=True, hide_index=True)
 
+    lifespan_description = df_usage.loc[df_usage["category"] == "Durée d’usage adapté au matériau", "description"].values[0]
+    lifespan_category = get_lifespan_category(lifespan_description)
+    lifespan_score = lifespan_dict[lifespan_category] / len(lifespan_dict)
 
+    usage_selections["Durée d’usage adapté au matériau"] = lifespan_description
+    usage_scores["Durée d’usage adapté au matériau"] = lifespan_score
 
-# # ---------------------------------------------------------------------------
-# # Sélection des matériaux à comparer
-# # ---------------------------------------------------------------------------
+    # Ajuster les scores à 10 pour une meilleure visualisation, normalisée avec les scores d'impact social
+    usage_scores = {
+        k: v * 10
+        for k, v in usage_scores.items()
+    }
 
-# pivot, units = etl.get_comparison_table()
-# pivot = pivot[selected]
+    df_usage["details"] = df_usage["category"].apply(lambda x: usage_selections.get(x, ""))
 
-# # ---------------------------------------------------------------------------
-# # Tableau de comparaison
-# # ---------------------------------------------------------------------------
-# st.subheader("Tableau comparatif")
+    df_usage["Score"] = df_usage["category"].apply(lambda x: usage_scores.get(x, 0))
 
-# display_df = pivot.copy()
-# display_df.insert(0, "Unité", [units.get(c, "") for c in display_df.index])
-# display_df.index.name = "Critère"
-# st.dataframe(display_df, use_container_width=True)
+    df_usage = df_usage[["category", "Score", "details", "source", "year"]].rename(
+                        columns={
+                                    "category" : "Catégorie",
+                                    "details" : "Détails",
+                                    "source" : "Source",
+                                    "year" : "Année"
+                                    })
 
-# # ---------------------------------------------------------------------------
-# # Graphiques par critère (un par catégorie écologique)
-# # ---------------------------------------------------------------------------
-# st.subheader("Comparaison par critère")
-
-# for critere in pivot.index:
-#     col1, col2 = st.columns([3, 1])
-#     with col1:
-#         chart_df = pivot.loc[[critere]].T
-#         chart_df.columns = [critere]
-#         st.bar_chart(chart_df)
-#     with col2:
-#         st.markdown(f"**{critere}**")
-#         st.caption(f"Unité : {units.get(critere, '—')}")
-
-# st.markdown(
-#     """
-#     <div style="background:#f2c9c9; border:1px solid #b56b6b; padding:10px; margin-top:10px;">
-#     ⚠️ Pas d'éléments pour "comparer" ou donner un score à ces calculs — comparaison limitée aux valeurs brutes.
-#     </div>
-#     """,
-#     unsafe_allow_html=True,
-# )
-
-# # ---------------------------------------------------------------------------
-# # Détails par matériau
-# # ---------------------------------------------------------------------------
-# st.subheader("Détails par matériau")
-# tabs = st.tabs(selected)
-# for tab, materiau in zip(tabs, selected):
-#     with tab:
-#         df_detail = etl.get_ecological_impact(materiau)
-#         st.dataframe(
-#             df_detail[["critere", "valeur", "unite", "description", "source", "annee"]],
-#             use_container_width=True,
-#             hide_index=True,
-#         )
+    st.dataframe(df_usage, 
+                 column_config={
+                    "Score": st.column_config.ProgressColumn(
+                        "Score",
+                        min_value=0,
+                        max_value=10,
+                        format="%d",
+                        color="auto",
+                    )
+                },
+                use_container_width=True, hide_index=True)
