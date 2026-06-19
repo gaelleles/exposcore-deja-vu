@@ -89,15 +89,3 @@ def get_usage_impact(material, db_path=DB_PATH):
     )
     conn.close()
     return df
-
-
-def get_comparison_table(db_path=DB_PATH):
-    """Tableau pivot : critères en lignes, matériaux en colonnes (valeurs brutes)."""
-    conn = connect_db(db_path)
-    df = pd.read_sql("SELECT materiau, critere, valeur, unite FROM impact_eco", conn)
-    conn.close()
-    if df.empty:
-        return df, {}
-    units = df.groupby("critere")["unite"].first().to_dict()
-    pivot = df.pivot(index="critere", columns="materiau", values="valeur")
-    return pivot, units

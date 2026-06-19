@@ -166,7 +166,7 @@ with tab1:
                 "Année",
             ]
         ]
-        st.dataframe(df_eco, use_container_width=True, hide_index=True)
+        st.dataframe(df_eco, width=True, hide_index=True)
 
 # ---------------------------------------------------------------------------
 # ONGLET IMPACT SOCIAL
@@ -208,7 +208,7 @@ with tab2:
                 color="auto",
             )
         },
-        use_container_width=True,
+        width=True,
         hide_index=True,
     )
     st.info(
@@ -264,6 +264,6 @@ with tab3:
                 color="auto",
             )
         },
-        use_container_width=True,
+        width=True,
         hide_index=True,
     )
