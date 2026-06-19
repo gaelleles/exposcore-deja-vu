@@ -6,17 +6,20 @@ from etl import DB_PATH
 # ANALYSE / REQUETAGE DE LA BASE
 ################################
 
+
 def connect_db(db_path=DB_PATH):
     """Connexion à la base SQLite."""
     conn = sqlite3.connect(db_path)
     return conn
 
+
 def convert_if_float(x):
     x_str = str(x).replace(",", ".").strip()
     try:
         return float(x_str)
-    except:
+    except ValueError:
         return x
+
 
 def get_materials(db_path=DB_PATH):
     conn = connect_db(db_path)
@@ -26,20 +29,22 @@ def get_materials(db_path=DB_PATH):
     conn.close()
     return materials
 
+
 def get_ecological_impact(material, db_path=DB_PATH):
     conn = connect_db(db_path)
-    df = pd.read_sql("""
-        SELECT category, 
+    df = pd.read_sql(
+        """
+        SELECT category,
                 category_description,
                 CASE
                     WHEN REPLACE(value, ',', '.') GLOB '-?[0-9]*'
                     OR REPLACE(value, ',', '.') GLOB '-?[0-9]*.[0-9]*'
                     THEN CAST(REPLACE(value, ',', '.') AS REAL)
                     ELSE value
-                END value, 
-                SUBSTR(unit, 1, INSTR(unit, '/') - 1) unit, 
+                END value,
+                SUBSTR(unit, 1, INSTR(unit, '/') - 1) unit,
                 comment,
-                source, 
+                source,
                 year
         FROM impact_eco WHERE material=? ORDER BY category
         """,
@@ -49,9 +54,11 @@ def get_ecological_impact(material, db_path=DB_PATH):
     conn.close()
     return df
 
+
 def get_social_impact(material, db_path=DB_PATH):
     conn = connect_db(db_path)
-    df = pd.read_sql("""
+    df = pd.read_sql(
+        """
         SELECT category,
             value,
             description,
@@ -65,9 +72,11 @@ def get_social_impact(material, db_path=DB_PATH):
     conn.close()
     return df
 
+
 def get_usage_impact(material, db_path=DB_PATH):
     conn = connect_db(db_path)
-    df = pd.read_sql("""
+    df = pd.read_sql(
+        """
         SELECT category,
                 criterion,
                 description,

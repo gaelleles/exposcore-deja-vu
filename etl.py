@@ -75,9 +75,7 @@ def read_material_sheets(share_url, filepath, material_name: str):
     material_name : nom du matériau (ex: "PVC neuf")
     """
 
-    file_bytes_or_path = download_file(
-        share_url, filepath
-    )
+    file_bytes_or_path = download_file(share_url, filepath)
     if isinstance(file_bytes_or_path, bytes):
         file_bytes_or_path = io.BytesIO(file_bytes_or_path)
 
