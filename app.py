@@ -34,6 +34,7 @@ materials = analysis.get_materials()
 
 selected = st.sidebar.selectbox(
     "Sélectionnez un matériau",
+    index=2,
     options=materials,
 )
 
@@ -49,71 +50,36 @@ if not selected:
 # Sidebar : DONNÉES USAGE
 # ---------------------------------------------------------------------------
 st.sidebar.subheader("⚡ Vos données d'usage")
-st.sidebar.caption("Vous pouvez sélectionner plusieurs réponses pour chaque question.")
 
-# Eco-conception en fin de vie
+with st.sidebar.form("questionnaire_usage"):
 
-grave_selection = st.sidebar.multiselect(
-    "Quels principes avez-vous utilisés pour la **fin de vie** de ce matériau ?", r_list
-)
-grave_score = len(grave_selection)
-grave_pct = grave_score / len(r_list)
+    # Eco-conception en fin de vie
+    grave_selection = st.multiselect(
+        "Quels principes avez-vous utilisés pour la **fin de vie** de ce matériau ?", r_list,
+    )
 
-# Respect des 7R en sourcing du matériau
+    # Respect des 7R en sourcing du matériau
+    sourcing_selection = st.multiselect(
+        "Quels principes avez-vous utilisés pour le **sourcing** de ce matériau ?", r_list,
+    )
 
-sourcing_selection = st.sidebar.multiselect(
-    "Quels principes avez-vous utilisés pour le **sourcing** de ce matériau ?", r_list
-)
+    # Eco-pensé au début ou à la fin
+    ecopense_selection = st.selectbox(
+        "Pour quelles raisons avez-vous choisi ce matériau ?", list(ecopense_dict.keys()), index=None,
+    )
 
-sourcing_score = len(sourcing_selection)
-sourcing_pct = sourcing_score / len(r_list)
+    # Impact local ( sourçage, répartition des richesses…)
+    local_selection = st.selectbox(
+        "Pour quelles raisons avez-vous choisi ce matériau ?", list(local_dict.keys()), index=None,
+    )
 
-# Eco-pensé au début ou à la fin
-# Ou : choix du produit
+    # Échange avec sachant sur les questions écologiques
+    knowledge_selection = st.selectbox(
+        "Avez-vous échangé avec un·e expert·e sur les questions écologiques ?",
+        list(knowledge_dict.keys()), index=None,
+    )
 
-ecopense_selection = st.sidebar.selectbox(
-    "Pour quelles raisons avez-vous choisi ce matériau ?", list(ecopense_dict.keys())
-)
-
-ecopense_score = ecopense_dict[ecopense_selection]
-ecopense_pct = ecopense_score / len(ecopense_dict)
-
-# Impact local ( sourçage, répartition des richesses…)
-
-local_selection = st.sidebar.selectbox(
-    "Pour quelles raisons avez-vous choisi ce matériau ?", list(local_dict.keys())
-)
-
-local_score = local_dict[local_selection]
-local_pct = local_score / len(local_dict)
-
-# Échange avec sachant sur les questions écologiques
-
-knowledge_selection = st.sidebar.selectbox(
-    "Avez-vous échangé avec un·e expert·e sur les questions écologiques ?",
-    list(knowledge_dict.keys()),
-)
-
-knowledge_score = knowledge_dict[knowledge_selection]
-knowledge_pct = knowledge_score / len(knowledge_dict)
-
-# Dictionnaire des scores d'usage pour calcul du score final
-
-usage_scores = {
-    "Eco-conception en fin de vie": grave_pct,
-    "Respect des 7R en sourcing du matériau": sourcing_pct,
-    "Eco-pensé au début ou à la fin": ecopense_pct,
-    "Impact local ( sourçage, répartition des richesses…)": local_pct,
-    "Échange avec sachant sur les questions écologiques": knowledge_pct,
-}
-
-usage_selections = {
-    "Eco-conception en fin de vie": grave_selection,
-    "Respect des 7R en sourcing du matériau": sourcing_selection,
-    "Eco-pensé au début ou à la fin": ecopense_selection,
-    "Impact local ( sourçage, répartition des richesses…)": local_selection,
-    "Échange avec sachant sur les questions écologiques": knowledge_selection,
-}
+    submitted = st.form_submit_button("✅ Valider les données d'usage")
 
 # ---------------------------------------------------------------------------
 # MAIN APP : AFFICHAGE DES DONNÉES D'IMPACT
@@ -224,46 +190,98 @@ with tab3:
     st.caption(
         "L'impact d'usage est calculé en fonction de la durabilité du matériau (Durée d'usage) et des réponses au questionnaire d'usage à gauche de votre écran."
     )
-    df_usage = analysis.get_usage_impact(selected)
 
-    lifespan_description = df_usage.loc[
-        df_usage["category"] == "Durée d’usage adapté au matériau", "description"
-    ].values[0]
-    lifespan_category = get_lifespan_category(lifespan_description)
-    lifespan_score = lifespan_dict[lifespan_category] / len(lifespan_dict)
+    # On n'affiche l'onglet usage que si toutes les questions ont été remplies
 
-    usage_selections["Durée d’usage adapté au matériau"] = lifespan_description
-    usage_scores["Durée d’usage adapté au matériau"] = lifespan_score
+    if submitted :
 
-    # Ajuster les scores à 10 pour une meilleure visualisation, normalisée avec les scores d'impact social
-    usage_scores = {k: v * 10 for k, v in usage_scores.items()}
+        usage_responses = [grave_selection, sourcing_selection, ecopense_selection, local_selection, knowledge_selection]
 
-    df_usage["details"] = df_usage["category"].apply(
-        lambda x: str(usage_selections.get(x, ""))
-    )
+        if all(r is not None for r in usage_responses):
 
-    df_usage["Score"] = df_usage["category"].apply(lambda x: usage_scores.get(x, 0))
+        # Calcul des scores selon les réponses aux questions
 
-    df_usage = df_usage[["category", "Score", "details", "source", "year"]].rename(
-        columns={
-            "category": "Catégorie",
-            "details": "Détails",
-            "source": "Source",
-            "year": "Année",
-        }
-    )
+            grave_score = len(grave_selection)
+            grave_pct = grave_score / len(r_list)
 
-    st.dataframe(
-        df_usage,
-        column_config={
-            "Score": st.column_config.ProgressColumn(
-                "Score",
-                min_value=0,
-                max_value=10,
-                format="%d",
-                color="auto",
+            sourcing_score = len(sourcing_selection)
+            sourcing_pct = sourcing_score / len(r_list)
+
+            ecopense_score = ecopense_dict[ecopense_selection]
+            ecopense_pct = ecopense_score / len(ecopense_dict)
+
+            local_score = local_dict[local_selection]
+            local_pct = local_score / len(local_dict)
+
+            knowledge_score = knowledge_dict[knowledge_selection]
+            knowledge_pct = knowledge_score / len(knowledge_dict)
+
+            # Dictionnaire des scores d'usage pour calcul du score final
+
+            usage_scores = {
+                "Eco-conception en fin de vie": grave_pct,
+                "Respect des 7R en sourcing du matériau": sourcing_pct,
+                "Eco-pensé au début ou à la fin": ecopense_pct,
+                "Impact local ( sourçage, répartition des richesses…)": local_pct,
+                "Échange avec sachant sur les questions écologiques": knowledge_pct,
+            }
+
+            usage_selections = {
+                "Eco-conception en fin de vie": grave_selection,
+                "Respect des 7R en sourcing du matériau": sourcing_selection,
+                "Eco-pensé au début ou à la fin": ecopense_selection,
+                "Impact local ( sourçage, répartition des richesses…)": local_selection,
+                "Échange avec sachant sur les questions écologiques": knowledge_selection,
+            }
+
+            # Récupération des données d'usage (notamment pour la durée du matériau)
+
+            df_usage = analysis.get_usage_impact(selected)
+
+            lifespan_description = df_usage.loc[
+                df_usage["category"] == "Durée d’usage adapté au matériau", "description"
+            ].values[0]
+            lifespan_category = get_lifespan_category(lifespan_description)
+            lifespan_score = lifespan_dict[lifespan_category] / len(lifespan_dict)
+
+            usage_selections["Durée d’usage adapté au matériau"] = lifespan_description
+            usage_scores["Durée d’usage adapté au matériau"] = lifespan_score
+
+            # Ajuster les scores à 10 pour une meilleure visualisation, normalisée avec les scores d'impact social
+            usage_scores = {k: v * 10 for k, v in usage_scores.items()}
+
+            df_usage["details"] = df_usage["category"].apply(
+                lambda x: str(usage_selections.get(x, ""))
             )
-        },
-        width="content",
-        hide_index=True,
-    )
+
+            df_usage["Score"] = df_usage["category"].apply(lambda x: usage_scores.get(x, 0))
+
+            df_usage = df_usage[["category", "Score", "details", "source", "year"]].rename(
+                columns={
+                    "category": "Catégorie",
+                    "details": "Détails",
+                    "source": "Source",
+                    "year": "Année",
+                }
+            )
+
+            st.dataframe(
+                df_usage,
+                column_config={
+                    "Score": st.column_config.ProgressColumn(
+                        "Score",
+                        min_value=0,
+                        max_value=10,
+                        format="%d",
+                        color="auto",
+                    )
+                },
+                width="content",
+                hide_index=True,
+            )
+
+        else:
+            st.info("👉 Répondez à toutes les questions dans \"Vos données d\'usage\" et validez le questionnaire à nouveau pour voir les résultats.")
+
+    else:
+        st.info("👉 Veuillez appuyer sur le bouton Valider en bas du questionnaire d'usage pour voir les résultats.")
