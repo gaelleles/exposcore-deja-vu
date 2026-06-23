@@ -69,3 +69,11 @@ Matériau : unité 	description 	Données 	Sources 	Année
 Noms de feuille : 'Usage - Impact d’usage _ 6 caté',
 Communes : Catégorie 	Critère 	unité
 Matériau : description (juste extraire première ligne pour avoir la durée totale possible d'un matériau)
+
+## Prochaines étapes
+
+L'outil présenté ici est un POC (proof-of-concept). 
+Nous avons identifié des étapes souhaitables pour la suite :
+- Développer une analyse d'impact pour plusieurs matériaux et données d'entrée (qui aurait en output un rapport ou une visualisation multicritères)
+- Développer la possibilité de comparer deux matériaux
+- Développer un indicateur composite (type éco-score, ou dépassement de certaines limites) pour faciliter la compréhension de l'impact d'un matériau
