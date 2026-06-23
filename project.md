@@ -72,7 +72,7 @@ Matériau : description (juste extraire première ligne pour avoir la durée tot
 
 ## Prochaines étapes
 
-L'outil présenté ici est un POC (proof-of-concept). 
+L'outil présenté ici est un POC (proof-of-concept).
 Nous avons identifié des étapes souhaitables pour la suite :
 - Développer une analyse d'impact pour plusieurs matériaux et données d'entrée (qui aurait en output un rapport ou une visualisation multicritères)
 - Développer la possibilité de comparer deux matériaux
