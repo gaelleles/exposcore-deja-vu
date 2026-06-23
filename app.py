@@ -52,31 +52,37 @@ if not selected:
 st.sidebar.subheader("⚡ Vos données d'usage")
 
 with st.sidebar.form("questionnaire_usage"):
-
     # Eco-conception en fin de vie
     grave_selection = st.multiselect(
-        "Quels principes avez-vous utilisés pour la **fin de vie** de ce matériau ?", r_list,
+        "Quels principes avez-vous utilisés pour la **fin de vie** de ce matériau ?",
+        r_list,
     )
 
     # Respect des 7R en sourcing du matériau
     sourcing_selection = st.multiselect(
-        "Quels principes avez-vous utilisés pour le **sourcing** de ce matériau ?", r_list,
+        "Quels principes avez-vous utilisés pour le **sourcing** de ce matériau ?",
+        r_list,
     )
 
     # Eco-pensé au début ou à la fin
     ecopense_selection = st.selectbox(
-        "Pour quelles raisons avez-vous choisi ce matériau ?", list(ecopense_dict.keys()), index=None,
+        "Pour quelles raisons avez-vous choisi ce matériau ?",
+        list(ecopense_dict.keys()),
+        index=None,
     )
 
     # Impact local ( sourçage, répartition des richesses…)
     local_selection = st.selectbox(
-        "Pour quelles raisons avez-vous choisi ce matériau ?", list(local_dict.keys()), index=None,
+        "D'où provient ce matériau ?",
+        list(local_dict.keys()),
+        index=None,
     )
 
     # Échange avec sachant sur les questions écologiques
     knowledge_selection = st.selectbox(
         "Avez-vous échangé avec un·e expert·e sur les questions écologiques ?",
-        list(knowledge_dict.keys()), index=None,
+        list(knowledge_dict.keys()),
+        index=None,
     )
 
     submitted = st.form_submit_button("✅ Valider les données d'usage")
@@ -193,19 +199,25 @@ with tab3:
 
     # On n'affiche l'onglet usage que si toutes les questions ont été remplies
 
-    if submitted :
-
-        usage_responses = [grave_selection, sourcing_selection, ecopense_selection, local_selection, knowledge_selection]
+    if submitted:
+        usage_responses = [
+            grave_selection,
+            sourcing_selection,
+            ecopense_selection,
+            local_selection,
+            knowledge_selection,
+        ]
 
         if all(r is not None for r in usage_responses):
+            # Calcul des scores selon les réponses aux questions
 
-        # Calcul des scores selon les réponses aux questions
+            grave_score = (
+                len(grave_selection) + 1
+            )  # Allows for the score to show up even if 0
+            grave_pct = grave_score / (len(r_list) + 1)
 
-            grave_score = len(grave_selection)
-            grave_pct = grave_score / len(r_list)
-
-            sourcing_score = len(sourcing_selection)
-            sourcing_pct = sourcing_score / len(r_list)
+            sourcing_score = len(sourcing_selection) + 1
+            sourcing_pct = sourcing_score / (len(r_list) + 1)
 
             ecopense_score = ecopense_dict[ecopense_selection]
             ecopense_pct = ecopense_score / len(ecopense_dict)
@@ -239,7 +251,8 @@ with tab3:
             df_usage = analysis.get_usage_impact(selected)
 
             lifespan_description = df_usage.loc[
-                df_usage["category"] == "Durée d’usage adapté au matériau", "description"
+                df_usage["category"] == "Durée d’usage adapté au matériau",
+                "description",
             ].values[0]
             lifespan_category = get_lifespan_category(lifespan_description)
             lifespan_score = lifespan_dict[lifespan_category] / len(lifespan_dict)
@@ -254,9 +267,33 @@ with tab3:
                 lambda x: str(usage_selections.get(x, ""))
             )
 
-            df_usage["Score"] = df_usage["category"].apply(lambda x: usage_scores.get(x, 0))
+            df_usage["Score"] = df_usage["category"].apply(
+                lambda x: usage_scores.get(x, 0)
+            )
 
-            df_usage = df_usage[["category", "Score", "details", "source", "year"]].rename(
+            df_usage.loc[
+                df_usage["category"].isin(
+                    [
+                        "Eco-conception en fin de vie",
+                        "Respect des 7R en sourcing du matériau",
+                    ]
+                ),
+                "details",
+            ] = df_usage.loc[
+                df_usage["category"].isin(
+                    [
+                        "Eco-conception en fin de vie",
+                        "Respect des 7R en sourcing du matériau",
+                    ]
+                ),
+                "details",
+            ].apply(
+                lambda x: "Aucun 7R sélectionné" if x == "[]" else x
+            )  # Clean empty lists for 7R criterion
+
+            df_usage = df_usage[
+                ["category", "Score", "details", "source", "year"]
+            ].rename(
                 columns={
                     "category": "Catégorie",
                     "details": "Détails",
@@ -281,7 +318,11 @@ with tab3:
             )
 
         else:
-            st.info("👉 Répondez à toutes les questions dans \"Vos données d\'usage\" et validez le questionnaire à nouveau pour voir les résultats.")
+            st.info(
+                '👉 Répondez à toutes les questions dans "Vos données d\'usage" et validez le questionnaire à nouveau pour voir les résultats.'
+            )
 
     else:
-        st.info("👉 Veuillez appuyer sur le bouton Valider en bas du questionnaire d'usage pour voir les résultats.")
+        st.info(
+            "👉 Veuillez appuyer sur le bouton Valider en bas du questionnaire d'usage pour voir les résultats."
+        )
