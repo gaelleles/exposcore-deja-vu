@@ -11,41 +11,7 @@ import sqlite3
 import pandas as pd
 import warnings
 from nextcloud import download_file
-
-################################
-# PARAMETERS
-################################
-
-DB_PATH = "exposcore.db"
-LOGO_FILEPATH = "32291 - Informations V0/322911 - Logo Déjà-vu/plein_bleu.png"
-MATERIALS_FILEPATH = [
-    {
-        "material": "PVC neuf",
-        "filepath": "3222 - PVC/critères-tests-PVC-NEUF.xlsx",
-        "imagepath": None,
-    },
-    {
-        "material": "Carton",
-        "filepath": "3223 - Carton /critères-tests-Carton.xlsx",
-        "imagepath": "32291 - Informations V0/322912 - Images matériaux/11-CARTON-WEB.jpg",
-    },
-    {
-        "material": "Aquapaper",
-        "filepath": "3224 - Aquapaper /critères-Aquapaper.xlsx",
-        "imagepath": "32291 - Informations V0/322912 - Images matériaux/13-AQUAPEPER-WEB.jpg",
-    },
-    {
-        "material": "Adhésif mat pour découpe",
-        "filepath": "3225 - Adhésif mat pour découpe /critères-adhésif-expr.xlsx",
-        "imagepath": "32291 - Informations V0/322912 - Images matériaux/20-ADHESIF-WEB.jpg",
-    },
-    {
-        "material": "Jet Tex",
-        "filepath": "3226 - Jet Tex/critères-Jet-Tex.xlsx",
-        "imagepath": "32291 - Informations V0/322912 - Images matériaux/02-ROULEAU-JETTEX-WEB.jpg",
-    },
-]
-
+from params import MATERIALS_FILEPATH, DB_PATH
 
 ################################
 # ETL PIPELINE

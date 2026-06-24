@@ -2,6 +2,7 @@ import streamlit as st
 import etl
 import analysis
 from nextcloud import download_file
+from params import INTRO_TEXT, R_EXPLAIN, LOGO_FILEPATH, WEBSITE
 from usage import (
     r_list,
     r_list_eol,
@@ -12,34 +13,6 @@ from usage import (
     get_lifespan_category,
 )
 
-
-WEBSITE = "https://www.deja-vu-ass.fr/"
-INTRO_TEXT = f"""
-**👋 Bienvenue dans l’ExpoScore V0.2026 de Déjà-vu !**
-
-Cet outil est la V0 d’une solution de visualisation des impacts écologiques et sociaux d’un projet (artistique, culturel, associatif, tournage...). Aujourd’hui principalement destiné au secteur des expositions, il a pour objectif de s’adresser à l’ensemble des projets culturels et artistiques dans un second temps.
-Les données et la méthodologie ont été développées par les membres bénévoles de l’association [Déjà-Vu]({WEBSITE}) portée par Emie Baud. L'application a été codée par [Gaëlle Lescop](https://github.com/gaelleles) en 2026.
-L’association Déjà-vu est une association à but non lucratif de vulgarisation scientifique dans le secteur des arts et de la culture afin de favoriser l’éco-conception des projets et de réduire le greenwashing, les fausses croyances et les impacts écologiques et sociaux de ces derniers.
-
-
-**❓ À quoi vous sert l’ExpoScore V0.2026 ?**
-L’outil vous permet de visualiser les impacts écologiques de vos matériaux, leurs impacts sociaux et enfin les impacts des usages que vous en ferez. L’ensemble de ces données vous aidera à mieux choisir les matériaux et comprendre les différents impacts. Il est pensé pour être utilisé à toutes les étapes des projets :
-–	En amont pour vous aider à éco-concevoir (ce qui est le mieux, on n’éco-conçoit jamais en fin de projet).
-–	Durant le projet pour visualiser les impacts.
-–	En fin de projet comme retour d’expérience et d’amélioration.
-Il s’agit d’un outil d’aide, pédagogique et en aucun cas d’un calculateur pouvant être utilisé à des fins marketing ou pouvant justifier d’un choix de matériau. Il vous aidera a affiner vos connaissances, connaître les impacts et les minimiser. Il est interdit de commercialiser cet outil.
-Chaque projet étant unique, l’ExpoScore ne peut être un outil de choix de matériau mais bien un outil d’aide à la décision selon certains critères.
-Les données seront mises à jour annuellement et de nouveaux matériaux seront disponibles à partir de 2027.
-
-
-🌍 Pour un numérique libre, OpenSource et responsable, cette solution est sous la licence CC NC-SA-4.0, les données sont hébergées sur NextCloud, la solution de visualisation est sur Streamlit (outil de visualisation open source) et le code accessible sur GitHub.
-
-📩 Utilisez-la ! Testez-la ! Bidouillez le code de votre côté pour permettre une amélioration commune et faites nous vos retours -> dejavu.asso@gmail.com 
-
-🌱 *Rendons l’éphémère durable.*
-
-"""
-
 ################################
 # DL IMAGES FUNCTION
 ################################
@@ -49,7 +22,7 @@ Les données seront mises à jour annuellement et de nouveaux matériaux seront 
 # This allows access to logo img + material pictures. For now material pictures are not used
 @st.cache_data
 def download_img(share_url):
-    img_dict = {"Logo": download_file(share_url=share_url, path=etl.LOGO_FILEPATH)}
+    img_dict = {"Logo": download_file(share_url=share_url, path=LOGO_FILEPATH)}
     for mat in etl.MATERIALS_FILEPATH:
         if mat["imagepath"] is not None:
             img_bytes = download_file(share_url=share_url, path=mat["imagepath"])
@@ -110,10 +83,10 @@ with st.sidebar.form("questionnaire_usage"):
     col1, col2 = st.columns(2)
 
     with col1:
-        mois = st.number_input("Mois", min_value=0, max_value=12, value=0, step=1)
+        annees = st.number_input("Année(s)", min_value=0, value=0, step=1)
 
     with col2:
-        annees = st.number_input("Années", min_value=0, value=0, step=1)
+        mois = st.number_input("Mois", min_value=0, max_value=12, value=0, step=1)
 
     project_length_months = mois + annees * 12
 
@@ -128,9 +101,7 @@ with st.sidebar.form("questionnaire_usage"):
     if no_r[0] in sourcing_selection:
         sourcing_selection = []
 
-    st.caption(
-        "ℹ️ Les R sont une variante des [5R du zéro déchet](https://fr.wikipedia.org/wiki/5_R_du_z%C3%A9ro_d%C3%A9chet)."
-    )
+    st.caption(R_EXPLAIN)
 
     # Eco-pensé au début ou à la fin
     ecopense_selection = st.selectbox(
@@ -370,8 +341,10 @@ with tab3:
             # Ajuster les scores à 10 pour une meilleure visualisation, normalisée avec les scores d'impact social
             usage_scores = {k: v * 10 for k, v in usage_scores.items()}
 
-            df_usage["details"] = df_usage["category"].apply(
-                lambda x: str(usage_selections.get(x, ""))
+            df_usage["details"] = (
+                df_usage["category"]
+                .apply(lambda x: usage_selections.get(x, ""))
+                .apply(lambda x: " + ".join(x) if type(x) is list else x)
             )
 
             df_usage["Score"] = df_usage["category"].apply(
