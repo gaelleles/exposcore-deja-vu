@@ -2,17 +2,16 @@ import streamlit as st
 import etl
 import analysis
 from nextcloud import download_file
-from usage import *
-# (
-#     r_list,
-#     r_list_eol,
-#     no_r_list_eol,
-#     ecopense_dict,
-#     local_dict,
-#     knowledge_dict,
-#     get_lifespan_category,
-#     lifespan_dict,
-# )
+from usage import (
+    r_list,
+    r_list_eol,
+    no_r_list_eol,
+    ecopense_dict,
+    local_dict,
+    knowledge_dict,
+    get_lifespan_category,
+)
+
 
 WEBSITE = "https://www.deja-vu-ass.fr/"
 INTRO_TEXT = f"""
