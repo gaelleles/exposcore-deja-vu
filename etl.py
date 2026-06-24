@@ -7,7 +7,6 @@ On accède directement aux fichiers par nextcloud (nuage)
 """
 
 import io
-import streamlit as st
 import sqlite3
 import pandas as pd
 import warnings
@@ -46,22 +45,6 @@ MATERIALS_FILEPATH = [
         "imagepath": "32291 - Informations V0/322912 - Images matériaux/02-ROULEAU-JETTEX-WEB.jpg",
     },
 ]
-
-################################
-# DL IMAGES
-################################
-
-
-@st.cache_data
-def download_img(share_url):
-    img_dict = {"Logo": download_file(share_url=share_url, path=LOGO_FILEPATH)}
-    for mat in MATERIALS_FILEPATH:
-        if mat["imagepath"] is not None:
-            img_bytes = download_file(share_url=share_url, path=mat["imagepath"])
-            img_dict[mat["material"]] = img_bytes
-        else:
-            img_dict[mat["material"]] = None
-    return img_dict
 
 
 ################################

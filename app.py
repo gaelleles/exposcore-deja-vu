@@ -1,6 +1,7 @@
 import streamlit as st
 import etl
 import analysis
+from nextcloud import download_file
 from usage import (
     r_list,
     ecopense_dict,
@@ -36,6 +37,24 @@ Les données seront mises à jour annuellement et de nouveaux matériaux seront 
 🌱 *Rendons l’éphémère durable.*
 
 """
+
+################################
+# DL IMAGES FUNCTION
+################################
+
+
+# Moved the function here so caching is directly in the app
+@st.cache_data
+def download_img(share_url):
+    img_dict = {"Logo": download_file(share_url=share_url, path=etl.LOGO_FILEPATH)}
+    for mat in etl.MATERIALS_FILEPATH:
+        if mat["imagepath"] is not None:
+            img_bytes = download_file(share_url=share_url, path=mat["imagepath"])
+            img_dict[mat["material"]] = img_bytes
+        else:
+            img_dict[mat["material"]] = None
+    return img_dict
+
 
 st.set_page_config(page_title="ExpoScore", layout="wide")
 
