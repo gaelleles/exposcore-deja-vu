@@ -44,7 +44,7 @@ Fichiers Excel (1 par matériau, stockés sur Nextcloud)
      app.py      →  affiche tout ça dans l'interface (le site web)
 ```
 
-Le fichier `params.py` contient les variables fixes du projet. @ Emie, si tu veux modifier le lien et le texte pour les 7R, tu as juste à aller sur ce fichier, appuyer sur edit, et changer le lien / le texte.
+Le fichier `params.py` contient les variables fixes du projet. @ Emie, si tu veux modifier le lien et le texte pour les 7R, tu as juste à aller sur ce fichier, appuyer sur edit, et changer le lien / le texte de `R_EXPLAIN`.
 
 ## 💻 Lancer l'application **en local** (sur votre ordinateur)
 
