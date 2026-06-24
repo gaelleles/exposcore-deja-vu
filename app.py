@@ -69,7 +69,7 @@ if share_url:
     try:
         with st.spinner("Importation des données d'impact..."):
             etl.etl_pipeline(share_url)
-            img_dict = etl.download_img(share_url)
+            img_dict = download_img(share_url)
     except Exception as e:
         st.sidebar.error(f"Erreur de connexion Nextcloud : {e}")
 
