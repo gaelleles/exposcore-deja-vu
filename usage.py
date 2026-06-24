@@ -1,5 +1,14 @@
 """
 Helper functions for usage impact analysis and parameter selections.
+
+Usage logic:
+
+D : durée d'usage minimum (extraite des données en mois)
+DR : durée réelle d'usage (durée du projet)
+
+Si D = DR on est neutre curseur au milieu
+Si DR > D On est vert c'est top (DR plsu de 2 ans c'est le + vert)
+Si DR < D On est rouge c'est nul (DR moins de 3 mois c'est le + rouge )
 """
 
 import re
@@ -18,6 +27,20 @@ r_list = [
     "Recycler",
     "Rendre à la Terre",
 ]
+
+r_list_eol = [
+    "Reconception pour un autre projet",
+    "Recyclage",
+    "Récupéré par un tiers",
+    "Réutilisé",
+    "Composté",
+]
+
+no_r_list_eol = [
+    "❌ Jeté",
+    "❌ Je ne sais pas",
+]
+
 
 ecopense_dict = {
     "En stock seconde main": 1,
@@ -92,21 +115,24 @@ def get_lifespan_category(text: str) -> str:
     """Renvoie uniquement le critère (str), ou "Non catégorisé" si aucune durée détectée."""
     durees = extract_lifespan(text)
     if not durees:
-        return "Non catégorisé"
+        durees = [[120, "plus"]]
 
     # on garde la durée la plus longue mentionnée dans la cellule
     mois, qualif = max(durees, key=lambda d: d[0])
 
+    label = "Plus de 10 ans"
+
     if mois <= 6:
-        return "6 mois"
-    if mois <= 12:
-        return "1 an"
-    if mois < 60:
-        return "Moins de 5 ans"
-    if mois == 60:
-        return "Moins de 5 ans" if qualif == "moins" else "Plus de 5 ans"
-    if mois < 120:
-        return "Plus de 5 ans"
-    if mois == 120:
-        return "Moins de 10 ans" if qualif == "moins" else "Plus de 10 ans"
-    return "Plus de 10 ans"
+        label = "6 mois"
+    elif mois <= 12:
+        label = "1 an"
+    elif mois < 60:
+        label = "Moins de 5 ans"
+    elif mois == 60:
+        label = "Moins de 5 ans" if qualif == "moins" else "Plus de 5 ans"
+    elif mois < 120:
+        label = "Plus de 5 ans"
+    elif mois == 120:
+        label = "Moins de 10 ans" if qualif == "moins" else "Plus de 10 ans"
+
+    return mois, label

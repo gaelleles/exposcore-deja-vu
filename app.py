@@ -2,14 +2,17 @@ import streamlit as st
 import etl
 import analysis
 from nextcloud import download_file
-from usage import (
-    r_list,
-    ecopense_dict,
-    local_dict,
-    knowledge_dict,
-    get_lifespan_category,
-    lifespan_dict,
-)
+from usage import *
+# (
+#     r_list,
+#     r_list_eol,
+#     no_r_list_eol,
+#     ecopense_dict,
+#     local_dict,
+#     knowledge_dict,
+#     get_lifespan_category,
+#     lifespan_dict,
+# )
 
 WEBSITE = "https://www.deja-vu-ass.fr/"
 INTRO_TEXT = f"""
@@ -44,6 +47,7 @@ Les données seront mises à jour annuellement et de nouveaux matériaux seront 
 
 
 # Moved the function here so caching is directly in the app
+# This allows access to logo img + material pictures. For now material pictures are not used
 @st.cache_data
 def download_img(share_url):
     img_dict = {"Logo": download_file(share_url=share_url, path=etl.LOGO_FILEPATH)}
@@ -99,43 +103,64 @@ if not selected:
 st.sidebar.subheader("⚡ Vos données d'usage")
 
 with st.sidebar.form("questionnaire_usage"):
-    no_r = ["❌ Aucun principe R appliqué"]
-
-    # Eco-conception en fin de vie
-    grave_selection = st.multiselect(
-        "Quels principes avez-vous utilisés pour la **fin de vie** de ce matériau ?",
-        r_list + no_r,
+    st.markdown(
+        "<span style='font-size:14px;'>🕘 Quelle est la **durée** de votre projet (hors étude et démontage, uniquement durée utilisateur/visiteur) ?</span>",
+        unsafe_allow_html=True,
     )
 
-    if no_r[0] in grave_selection:
-        grave_selection = []
+    col1, col2 = st.columns(2)
+
+    with col1:
+        mois = st.number_input("Mois", min_value=0, max_value=12, value=0, step=1)
+
+    with col2:
+        annees = st.number_input("Années", min_value=0, value=0, step=1)
+
+    project_length_months = mois + annees * 12
+
+    no_r = ["❌ Aucun principe R appliqué"]
 
     # Respect des 7R en sourcing du matériau
     sourcing_selection = st.multiselect(
-        "Quels principes avez-vous utilisés pour le **sourcing** de ce matériau ?",
+        "♻️ Quel(s) principe(s) avez-vous utilisé parmi les 7R pour choisir vos matériaux ?",
         r_list + no_r,
     )
 
     if no_r[0] in sourcing_selection:
         sourcing_selection = []
 
+    st.caption(
+        "ℹ️ Les R sont une variante des [5R du zéro déchet](https://fr.wikipedia.org/wiki/5_R_du_z%C3%A9ro_d%C3%A9chet)."
+    )
+
     # Eco-pensé au début ou à la fin
     ecopense_selection = st.selectbox(
-        "Pour quelles raisons avez-vous choisi ce matériau ?",
+        "🎚️ Pour quelle raison avez-vous choisi ce matériau ?",
         list(ecopense_dict.keys()),
         index=None,
     )
 
+    st.caption("ℹ️ 1 seule réponse possible, choisissez la plus contraignante.")
+
     # Impact local ( sourçage, répartition des richesses…)
     local_selection = st.selectbox(
-        "D'où provient ce matériau ?",
+        "🌍 D'où **provient** ce matériau ?",
         list(local_dict.keys()),
         index=None,
     )
 
+    # Eco-conception en fin de vie
+    grave_selection = st.multiselect(
+        "🗑️ Quel(s) principe(s) avez-vous appliqué pour la **fin de vie** de ce matériau ?",
+        r_list_eol + no_r_list_eol,
+    )
+
+    if any(opt in grave_selection for opt in no_r_list_eol):
+        grave_selection = []
+
     # Échange avec sachant sur les questions écologiques
     knowledge_selection = st.selectbox(
-        "Avez-vous échangé avec un·e expert·e sur les questions écologiques ?",
+        "🔎 Avez-vous échangé avec des **expert·es** pour le choix de vos matériaux et leur usage ?",
         list(knowledge_dict.keys()),
         index=None,
     )
@@ -282,7 +307,7 @@ with tab3:
             grave_score = (
                 len(grave_selection) + 1
             )  # Allows for the score to show up even if 0
-            grave_pct = grave_score / (len(r_list) + 1)
+            grave_pct = grave_score / (len(r_list_eol) + 1)
 
             sourcing_score = len(sourcing_selection) + 1
             sourcing_pct = sourcing_score / (len(r_list) + 1)
@@ -322,10 +347,25 @@ with tab3:
                 df_usage["category"] == "Durée d’usage adapté au matériau",
                 "description",
             ].values[0]
-            lifespan_category = get_lifespan_category(lifespan_description)
-            lifespan_score = lifespan_dict[lifespan_category] / len(lifespan_dict)
+            lifespan_months, lifespan_category = get_lifespan_category(
+                lifespan_description
+            )
 
-            usage_selections["Durée d’usage adapté au matériau"] = lifespan_description
+            # Old logic, based off lifespan length
+            # lifespan_score = lifespan_dict[lifespan_category] / len(lifespan_dict)
+
+            # New logic : compare lifespan_months and project_length_months
+            # 0.1 is very bad (project length <<< lifespan material)
+            # 1 is perfect (length >>> lifespan material)
+            # 0.5 is project length == lifespan material)
+
+            lifespan_score = 0.1 + 0.9 * (
+                project_length_months / (project_length_months + lifespan_months)
+            )
+
+            usage_selections["Durée d’usage adapté au matériau"] = (
+                f"Votre projet dure {annees} année(s) et {mois} mois, comparé à la durée de vie du matériau : {lifespan_description}"
+            )
             usage_scores["Durée d’usage adapté au matériau"] = lifespan_score
 
             # Ajuster les scores à 10 pour une meilleure visualisation, normalisée avec les scores d'impact social
@@ -359,15 +399,26 @@ with tab3:
                 lambda x: "❌ Aucun principe R appliqué" if x == "[]" else x
             )  # Clean empty lists for 7R criterion
 
-            df_usage = df_usage[
-                ["category", "Score", "details", "source", "year"]
-            ].rename(
-                columns={
-                    "category": "Catégorie",
-                    "details": "Détails",
-                    "source": "Source",
-                    "year": "Année",
-                }
+            ordre = {
+                "Durée d’usage adapté au matériau": 1,
+                "Eco-conception en fin de vie": 5,
+                "Eco-pensé au début ou à la fin": 3,
+                "Impact local ( sourçage, répartition des richesses…)": 4,
+                "Respect des 7R en sourcing du matériau": 2,
+                "Échange avec sachant sur les questions écologiques": 6,
+            }
+
+            df_usage = (
+                df_usage[["category", "Score", "details", "source", "year"]]
+                .sort_values(by="category", key=lambda x: x.map(ordre))
+                .rename(
+                    columns={
+                        "category": "Catégorie",
+                        "details": "Détails",
+                        "source": "Source",
+                        "year": "Année",
+                    }
+                )
             )
 
             st.dataframe(
