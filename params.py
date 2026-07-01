@@ -43,10 +43,10 @@ L’association Déjà-vu est une association à but non lucratif de vulgarisati
 
 
 **❓ À quoi vous sert l’ExpoScore V0.2026 ?**
-L’outil vous permet de visualiser les impacts écologiques de vos matériaux, leurs impacts sociaux et enfin les impacts des usages que vous en ferez. L’ensemble de ces données vous aidera à mieux choisir les matériaux et comprendre les différents impacts. Il est pensé pour être utilisé à toutes les étapes des projets :
-–	En amont pour vous aider à éco-concevoir (ce qui est le mieux, on n’éco-conçoit jamais en fin de projet).
-–	Durant le projet pour visualiser les impacts.
-–	En fin de projet comme retour d’expérience et d’amélioration.
+L’outil vous permet de visualiser les impacts écologiques de vos matériaux, leurs impacts sociaux et enfin les impacts des usages que vous en ferez. L’ensemble de ces données vous aidera à mieux choisir les matériaux et comprendre les différents impacts. Il est pensé pour être utilisé à toutes les étapes des projets : <br> 
+–	En amont pour vous aider à éco-concevoir (ce qui est le mieux, on n’éco-conçoit jamais en fin de projet). <br>
+–	Durant le projet pour visualiser les impacts. <br>
+–	En fin de projet comme retour d’expérience et d’amélioration. <br> <br>
 Il s’agit d’un outil d’aide, pédagogique et en aucun cas d’un calculateur pouvant être utilisé à des fins marketing ou pouvant justifier d’un choix de matériau. Il vous aidera a affiner vos connaissances, connaître les impacts et les minimiser. Il est interdit de commercialiser cet outil.
 Chaque projet étant unique, l’ExpoScore ne peut être un outil de choix de matériau mais bien un outil d’aide à la décision selon certains critères.
 Les données seront mises à jour annuellement et de nouveaux matériaux seront disponibles à partir de 2027.

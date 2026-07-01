@@ -1,6 +1,7 @@
 import streamlit as st
 import etl
 import analysis
+import hmac
 from nextcloud import download_file
 from params import INTRO_TEXT, R_EXPLAIN, LOGO_FILEPATH, WEBSITE
 from usage import (
@@ -33,6 +34,45 @@ def download_img(share_url):
 
 
 st.set_page_config(page_title="ExpoScore", layout="wide")
+
+# ---------------------------------------------------------------------------
+# MOT DE PASSE
+# ---------------------------------------------------------------------------
+
+def check_password():
+    """Retourne True si le mot de passe est correct."""
+
+    def password_entered():
+        if hmac.compare_digest(
+            st.session_state["password"],
+            st.secrets["PASSWORD"]
+        ):
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]
+        else:
+            st.session_state["password_correct"] = False
+
+    if st.session_state.get("password_correct", False):
+        return True
+    
+    st.title("🔐 Bienvenue sur Exposcore V0.2026 !")
+    st.write("Pour y accéder, veuillez entrer le mot de passe fourni par l'association Déjà-Vu.")
+
+
+    st.text_input(
+        "Mot de passe",
+        type="password",
+        on_change=password_entered,
+        key="password",
+    )
+
+    if "password_correct" in st.session_state:
+        st.error("❌ Mot de passe incorrect")
+
+    return False
+
+if not check_password():
+    st.stop()
 
 # ---------------------------------------------------------------------------
 # Sidebar : DONNÉES UTILISATEUR
@@ -419,4 +459,4 @@ with tab3:
         )
 
 with tab4:
-    st.markdown(INTRO_TEXT)
+    st.markdown(INTRO_TEXT, unsafe_allow_html=True)
